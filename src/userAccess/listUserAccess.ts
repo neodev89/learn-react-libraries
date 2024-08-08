@@ -7,7 +7,7 @@ interface userProps {
 export const listUser: userProps[] = [
     {
         id: 1,
-        email: 'mattiagiorgiocovato14@gmail.com',
+        email: 'amazzachemazza@mazza.it',
         password: 'bulachebula'
     },
     {

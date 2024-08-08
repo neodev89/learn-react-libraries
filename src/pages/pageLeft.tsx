@@ -5,7 +5,8 @@ import { InputText } from "../widgets/InputText"
 import { Submit } from "../widgets/Submit"
 
 export const PageLeft = () => {
-  const { sx, utenteTrovato, formik } = useContext(MyContext)
+  const { sx, utenteTrovato, formik } = useContext(MyContext);
+
   return (
     <Box sx={sx.left}>
       {!utenteTrovato &&

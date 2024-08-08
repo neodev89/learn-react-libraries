@@ -5,7 +5,7 @@ import { Stack, Box } from '@mui/material';
 import { useSxStylePrincipal } from './styleSxPrincipal/styleSxPrincipal';
 import { useFormik } from 'formik';
 import { fetcher } from './userAccess/listUserAccess';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query';
 
 import { PageLeft } from './pages/pageLeft';
 import { PageRight } from './pages/pageRight';
@@ -22,11 +22,12 @@ interface valProps {
 }
 export const valuesObj: valProps[] = [];
 
-function App() {
+function FetchUsers() {
   const sx = useSxStylePrincipal();
 
   const [utenteTrovato, setUtenteTrovato] = useState<boolean>(false);
   const [registrati, setRegistrati] = useState<boolean>(false);
+  const [login, setLogin] = useState<boolean>(false);
 
   const Logout = () => {
     setUtenteTrovato(false);
@@ -43,21 +44,30 @@ function App() {
       .required('La password è obbligatoria'),
   });
 
+  const { data: listUsers, error, isLoading } = useQuery({
+    queryKey: ['users'],
+    queryFn: fetcher,
+  });
+
+
   const formik = useFormik({
     initialValues: {
       email: '',
       password: '',
     },
     validationSchema: validationSchema,
-    onSubmit: async (values, { resetForm }) => {
-      const listUsers = await fetcher();
-      const user = listUsers.find(user =>
+    onSubmit: (values, { resetForm }) => {
+      if (isLoading) return;
+
+      if (error) return;
+
+      const user = listUsers?.find(user =>
         user.email === values.email && user.password === values.password
       );
 
       if (user) {
-        const userWidthId = { ...user, id: user.id };
-        valuesObj.push(userWidthId);
+        const userWithId = { ...user, id: user.id };
+        valuesObj.push(userWithId);
         console.log(valuesObj);
         setUtenteTrovato(true);
       } else {
@@ -80,23 +90,38 @@ function App() {
     }}>
       <div className="App">
         <Stack spacing={1} sx={sx.principal}>
-          {registrati ?
-            (
-              <Box sx={sx.recordBox}>
-                <RegistrazioneUtente />
-              </Box>
-            )
-            :
-            (
+          <Stack spacing={1} sx={sx.principal}>
+            {!login ? (
+              <Stack spacing={1}>
+                {registrati ? (
+                  <Box sx={sx.recordBox}>
+                    <RegistrazioneUtente />
+                  </Box>
+                ) : (
+                  <Box sx={sx.central}>
+                    <PageLeft />
+                    <PageRight />
+                  </Box>
+                )}
+              </Stack>
+            ) : (
               <Box sx={sx.central}>
-                <PageLeft />
-                <PageRight />
+                {/* Contenuto per quando login è false */}
               </Box>
             )}
+          </Stack>
         </Stack>
       </div>
     </MyContext.Provider>
   );
+}
+
+const App = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <FetchUsers />
+    </QueryClientProvider>
+  )
 }
 
 export default App;
